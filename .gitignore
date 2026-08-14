@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+.audit_uploads/
+outputs/
+logs/*.log
+tests/data/audited_*.xlsx

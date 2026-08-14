@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Excel Financial Auditor</title>
+  <style>
+    :root{--ink:#14213d;--muted:#667085;--line:#e6eaf0;--bg:#f5f7fb;--blue:#2563eb}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,Segoe UI,Arial,sans-serif}
+    .shell{max-width:1180px;margin:auto;padding:36px 22px}.top{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:24px}
+    h1{font-size:29px;margin:0;letter-spacing:-.6px}h2{font-size:19px;margin:0 0 14px}.sub,.muted{color:var(--muted)}.badge{font-size:12px;font-weight:700;color:#1d4ed8;background:#dbeafe;padding:6px 10px;border-radius:20px}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin:16px 0;box-shadow:0 3px 10px #1f293708}.drop{border:2px dashed #91a8d1;text-align:center;padding:42px 20px;background:linear-gradient(135deg,#fff,#f4f8ff)}
+    button,.button{border:0;background:var(--blue);color:#fff;border-radius:8px;padding:11px 17px;font-weight:650;text-decoration:none;cursor:pointer;font:inherit}.button.secondary{background:#edf2ff;color:#1d4ed8}input{margin:10px}.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.stat{padding:17px}.n{font-size:29px;font-weight:750}.critical .n{color:#dc2626}.high .n{color:#ea580c}.medium .n{color:#ca8a04}.low .n{color:#0284c7}
+    .summary{display:flex;justify-content:space-between;gap:20px;align-items:center}.risk{font-size:20px;font-weight:750;color:#ea580c}.toolbar{display:flex;gap:10px;flex-wrap:wrap}.toolbar select{padding:8px;border:1px solid var(--line);border-radius:7px;background:#fff}.issue{border-left:5px solid #94a3b8}.issue.CRITICAL{border-color:#dc2626}.issue.HIGH{border-color:#ea580c}.issue.MEDIUM{border-color:#ca8a04}.issue.LOW{border-color:#0284c7}.issue-top{display:flex;justify-content:space-between;gap:10px}.tag{font-size:12px;border-radius:5px;padding:3px 7px;font-weight:700;background:#f1f5f9}.formula{background:#f8fafc;border-radius:7px;padding:9px;font-family:ui-monospace,Consolas,monospace}.detail{color:#475467;margin:8px 0}@media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}.summary,.top{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top"><div><h1>Excel Financial Auditor</h1><div class="sub">Локальная проверка Excel-формул и финансовой логики</div></div><span class="badge">LOCAL PREVIEW</span></header>
+    <section class="card drop"><h2>Загрузите финансовую Excel-книгу</h2><p class="muted">Перетащите .xlsx / .xlsm или выберите файл</p><input type="file" accept=".xlsx,.xlsm"><br><button onclick="showResults()">Analyze workbook</button><p id="notice" class="muted">Это автономный HTML-просмотр: анализ выполняется в запущенном приложении Python.</p></section>
+    <div id="results" hidden>
+      <section class="card summary"><div><b>Workbook:</b> Budget_2026.xlsx<br><span class="muted">12 листов · 14 582 ячеек с формулами · статический анализ</span></div><div><span class="muted">Overall risk</span><div class="risk">HIGH · 48</div></div><a class="button secondary" href="#issues">View issues</a></section>
+      <section class="stats"><div class="card stat"><span class="muted">Total issues</span><div class="n">16</div></div><div class="card stat critical"><span class="muted">Critical</span><div class="n">1</div></div><div class="card stat high"><span class="muted">High</span><div class="n">4</div></div><div class="card stat medium"><span class="muted">Medium</span><div class="n">7</div></div><div class="card stat low"><span class="muted">Low</span><div class="n">4</div></div></section>
+      <section class="card" id="issues"><h2>Найденные проблемы</h2><div class="toolbar"><select id="severity" onchange="filterIssues()"><option value="">Все уровни</option><option>CRITICAL</option><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select><select id="sheet" onchange="filterIssues()"><option value="">Все листы</option><option>P&amp;L</option><option>Balance Sheet</option></select></div>
+        <article class="card issue HIGH" data-severity="HIGH" data-sheet="P&L"><div class="issue-top"><span class="tag">ISSUE-0001 · HIGH · HIGH confidence</span><b>P&amp;L!F25</b></div><h3>Формула отличается от соседних периодов</h3><div class="formula">=F20-F22</div><p class="detail">E25 и G25 используют одинаковую структуру формулы, но F25 не включает ссылку на F23.</p><b>Рекомендация:</b> Проверьте, должен ли F23 вычитаться из EBITDA.</article>
+        <article class="card issue CRITICAL" data-severity="CRITICAL" data-sheet="Balance Sheet"><div class="issue-top"><span class="tag">ISSUE-0002 · CRITICAL · HIGH confidence</span><b>Balance Sheet!G38</b></div><h3>Balance Sheet does not balance</h3><p class="detail">Total Assets отличается от Total Liabilities + Equity на 295 000.</p><b>Рекомендация:</b> Проследите итоговые строки баланса и связанные записи Cash Flow.</article>
+        <article class="card issue MEDIUM" data-severity="MEDIUM" data-sheet="P&L"><div class="issue-top"><span class="tag">ISSUE-0003 · MEDIUM · MEDIUM confidence</span><b>P&amp;L!H14</b></div><h3>Inconsistent SUM range</h3><div class="formula">=SUM(H7:H12)</div><p class="detail">Диапазон SUM отличается от соседнего периода.</p></article>
+      </section>
+    </div>
+  </main>
+  <script>
+    function showResults(){document.getElementById('results').hidden=false;document.getElementById('notice').textContent='Показаны демонстрационные результаты. Для реального аудита запустите: python run.py';document.getElementById('results').scrollIntoView({behavior:'smooth'})}
+    function filterIssues(){const s=severity.value,sh=sheet.value;document.querySelectorAll('.issue').forEach(x=>x.hidden=!!((s&&x.dataset.severity!==s)||(sh&&x.dataset.sheet!==sh)))}
+  </script>
+</body>
+</html>
